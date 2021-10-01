@@ -3,4 +3,5 @@ use Termux::API;
 use Data::Dumper;
 
 my $termux=Termux::API->new();
-print Dumper($termux)
+$termux->tts_speak("Heck yeah.")
+#print Dumper($termux)
