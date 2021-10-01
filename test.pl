@@ -3,5 +3,5 @@ use Termux::API;
 use Data::Dumper;
 
 my $termux=Termux::API->new();
-$termux->sensor(-l);
+print($termux->sensor(-s=>"Samsung Orientation Sensor"));
 #print Dumper($termux)
