@@ -2,6 +2,14 @@
 import numpy as np
 from datetime import datetime
 from sys import argv
+from os import system as CMD
+
+def splitMeasurements(lines,nlines,offset=0,lineMargins=[0,0]):
+        output=[]
+        size=nlines+lineMargins[0]+lineMargins[1]
+        for n in range(offset+lineMargins[0],len(lines),size):
+                output.append(lines[n:n+nlines])
+        return output
 
 class Spectrum:
 	INTENDED_NAMES=dict()
@@ -106,6 +114,40 @@ def read(path,name="",quiet=False):
 	if not quiet:print(f"Data read from {path}, stored as '{spectrum.name}'")
 	return spectrum
 #	print(set(zip(freqs,powers)))
+def multiRead(path,name="",nbins=1024,quiet=False):
+    text=""
+    with open(path,"r") as file:
+        text=file.read()
+    lines=text.split("\n")
+    mments=splitMeasurements(lines,nbins,0,[5,1])
+    data=[[[float(a.split(" ")[0]),float(a.split(" ")[1])] for a in mments[b]] for b in range(len(mments))]
+    spectra=[]
+    if not quiet:print(f"File: {path}, bins: {nbins}")
+    for i in range(len(mments)):
+        spectra.append(
+            Spectrum(
+                name+"["+str(i)+"]",
+                np.array([data[i][a][0] for a in range(len(mments[i]))],dtype=np.float32),
+                np.array([data[i][a][1] for a in range(len(mments[i]))],dtype=np.float32),
+                f"File: '{path}', entry {i}/{len(mments)}"
+            )
+        )
+    if not quiet:print(f"Data read from {path}, stored as list of {len(spectra)} spectra.")
+    return spectra
+def writeArray(spectra,path,quiet=False):
+    with open(path,"w") as file:
+        for i in range(len(spectra)):
+            spectrum=spectra[i]
+            file.write(f"# '{path}': Output from data_process.py (data from rtl_power_fftw)\n")
+            file.write(f"# Date created: {str(datetime.now())}\n")
+            file.write(f"# Name: {spectrum.name}\n")
+            file.write(f"# Bins: {spectrum.bins}\n")
+            file.write(f"# Frequency range: [{min(spectrum.freqs)} Hz {max(spectrum.freqs)} Hz]\n")
+            for i in range(spectrum.bins):
+                file.write(str(spectrum.freqs[i])+" "+str(spectrum.values[i])+"\n")
+            file.write("\n")
+            if not quiet:print(f"Spectrum {i}/{len(spectra)} written to file.")
+    if not quiet:print(f"Spectra were succesfully written to {path}!")
 def write(spectrum,path,quiet=False):
 	with open(path,"w") as file:
 		file.write(f"# '{path}': Output from data_process.py (data from rtl_power_fftw)\n")
