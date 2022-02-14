@@ -39,7 +39,7 @@ hollis_nh=EarthLocation(
 
 altaz_frame=AltAz(obstime=utcTime,location=hollis_nh,pressure=0)
 
-midnight = Time('2022-03-01 05:00:00')
+midnight = Time('2022-03-01 04:00:00')
 delta_midnight = np.linspace(0, 24, 1000)*u.hour
 time_range = midnight + delta_midnight
 frame_range = AltAz(obstime=time_range, location=hollis_nh)
@@ -52,11 +52,12 @@ sources=[
     RadioSource("Vir A",vir_a,altaz_frame)
 ]
 
+plt.ylim(0,90)
 for i in range(len(sources)):
     source=sources[i]
     plt.plot(
         delta_midnight,
-        -source.coords.transform_to(frame_range).alt.degree,
+        source.coords.transform_to(frame_range).alt.degree,
         label=source.name
     )
     t=(source.coords.ra-midnight.sidereal_time("apparent",hollis_nh.lon))%(360*u.degree)
