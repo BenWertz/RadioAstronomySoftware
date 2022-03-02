@@ -3,10 +3,14 @@ import astropy
 import matplotlib.pyplot as plt
 import astropy.units as u
 from astropy.time import Time
+from dateutil import tz
 from time import sleep
+import datetime
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from math import *
 from astropy.visualization import astropy_mpl_style, quantity_support
+from matplotlib.ticker import MultipleLocator,AutoMinorLocator
+
 plt.style.use(astropy_mpl_style)
 quantity_support()
 
@@ -25,21 +29,24 @@ class RadioSource:
 cas_a=SkyCoord.from_name("Cassiopeia A")
 cyg_a=SkyCoord.from_name("Cygnus A")
 tau_a=SkyCoord.from_name("M1")
-vir_a=SkyCoord.from_name("Virgo A")
+#vir_a=SkyCoord.from_name("Virgo A")
 
-edt_offset=-5*u.hour
+est_offset=4*u.hour
 #utcTime=Time("2022-02-11 12:00:00")-utcOffset
 utcTime=Time.now()
 
 hollis_nh=EarthLocation(
-    lat=42.75284*u.deg,
-    lon=-71.60044*u.deg,
+    lat=42.75291*u.deg,
+    lon=-71.60056*u.deg,
     height=129*u.m
 )
 
 altaz_frame=AltAz(obstime=utcTime,location=hollis_nh,pressure=0)
 
-midnight = Time('2022-03-01 04:00:00')
+abc = tz.gettz('US/Pacific')
+dat = datetime.datetime(2010, 9, 25, 10, 36)
+
+midnight = Time('2022-03-01 00:00:00')+est_offset
 delta_midnight = np.linspace(0, 24, 1000)*u.hour
 time_range = midnight + delta_midnight
 frame_range = AltAz(obstime=time_range, location=hollis_nh)
@@ -52,17 +59,43 @@ sources=[
     RadioSource("Vir A",vir_a,altaz_frame)
 ]
 
-plt.ylim(0,90)
+
+fig, ax = plt.subplots()
+
+#plt.xlabel('Time (hours)')
+#ax.ylabel('Elevation angle (degrees)')
+
+
+ax.set_xlim(0,24)
+ax.set_ylim(0,90)
+ax.set_title(f"Altitude of radio source targets over 24 hours (day:{midnight})",fontsize=12)
+ax.set_xlabel(xlabel="Time (hours)",fontsize=10)
+ax.set_ylabel(ylabel="Altitude angle (degrees)",fontsize=10)
+
+ax.xaxis.set_major_locator(MultipleLocator(1))
+ax.xaxis.set_major_formatter('{x:.0f}')
+ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+
+ax.yaxis.set_major_locator(MultipleLocator(10))
+ax.yaxis.set_major_formatter('{x:.0f}')
+ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax.tick_params(which='major', length=6)
+ax.tick_params(which='minor', length=3)
+
+# ax.yaxis.set_major_locator(MultipleLocator(10))
+# ax.yaxis.set_major_formatter('{x:.0f}')
+# ax.yaxis.set_minor_locator(MultipleLocator(5))
+
 for i in range(len(sources)):
     source=sources[i]
-    plt.plot(
+    ax.plot(
         delta_midnight,
         source.coords.transform_to(frame_range).alt.degree,
         label=source.name
     )
-    t=(source.coords.ra-midnight.sidereal_time("apparent",hollis_nh.lon))%(360*u.degree)
-    print(f"{source.name}: Culmination at {t.hms}")
-    plt.axvline(x=(t.hour%24),color=["blue","purple","red","green"][i])
-plt.legend(loc='upper left')
+    t=(source.coords.ra-midnight.sidereal_time("apparent",hollis_nh.lon))
+    print(f"{source.name}: Culmination at {(t%(360*u.degree)).hms}")
+    ax.axvline(x=(t.hour%24),color=["blue","purple","red","green"][i])
+ax.legend(loc='upper left')
 
 plt.show()
