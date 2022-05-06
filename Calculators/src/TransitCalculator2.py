@@ -1,9 +1,10 @@
 from astroplan import Observer, FixedTarget
-from astropy.coordinates import EarthLocation,SkyCoord,get_sun
+from astropy.coordinates import EarthLocation,SkyCoord,get_sun,Angle
 from astropy.time import Time
 import astropy.units as u
 import datetime
 from dateutil import tz
+from math import pi
 
 def text_spacing(entries,spacing):
     out=""
@@ -14,10 +15,13 @@ def text_spacing(entries,spacing):
 
 target_sources=[
     FixedTarget.from_name("Cassiopeia A"),
-    FixedTarget.from_name("Cygnus  A"),
-    FixedTarget.from_name("M 1"),
-    FixedTarget.from_name("Virgo  A"),
+    FixedTarget.from_name("Cygnus A"),
+    FixedTarget.from_name("Taurus A"),
+    # Too steep of an angle, not possible :'(
+    # FixedTarget.from_name("Virgo  A"),
 ]
+
+source_names=[target.name for target in target_sources]
 
 hollis_nh=EarthLocation(
     lat=42.75291*u.deg,
@@ -30,11 +34,9 @@ observer=Observer(location=hollis_nh,timezone="US/Eastern")
 days=[]
 meridian_times=[]
 
-# Let's hope this is when we can start.
-# To be honest, we both know we should have been here a long time ago.
-first_day=Time("2021-04-28 00:00:00")
+first_day=Time("2022-05-01 00:00:00")
 
-numDays=30+(31-7)
+numDays=25
 
 #Generate time objects for each day.
 for i in range(numDays):
@@ -49,6 +51,11 @@ for i in range(numDays):
     days.append(current_day)
     meridian_times.append(day_meridians)
 
+for j in range(len(meridian_times[0])):
+    coords=observer.altaz(meridian_times[0][j],target_sources[j])
+    print(source_names[j]+": "+((90*u.degree-coords.alt).to_string(None,True))+" degs "+("North" if abs(coords.az)<1*u.degree else "South"))
+print()
+
 # Open thank-you to https://www.geeksforgeeks.org/formatting-dates-in-python/ for explaining time formatting
 # (seriously, it's so useful and solves like half of my problems)
 
@@ -56,8 +63,8 @@ observation_window=2*u.hour
 spacing=15
 header="Day"
 header+=" "*(15-len(header))
-header+=text_spacing(["Cassiopeia A","Cygnus A","Taurus A","Virgo A"],spacing)
-header+="Sun transit"
+header+=text_spacing(source_names,spacing)
+header+=" Sun transit"
 print(header)
 for i in range(len(days)):
     line=days[i].to_datetime().strftime("%a, %b %d")
@@ -73,8 +80,6 @@ for i in range(len(days)):
         line+=" "*(spacing*(j+1)+l0-len(line))
     current_sun=get_sun(days[i])
     sun_time=observer.target_meridian_transit_time(days[i],current_sun)
-    line+=f" {observer.astropy_time_to_datetime(sun_time).strftime('%I:%M:%S %p')}: {repr(observer.altaz(sun_time,current_sun).alt)}"
+    # print(observer.altaz(sun_time,current_sun).to_string("decimal").split(" ")[1])
+    line+=f" {observer.astropy_time_to_datetime(sun_time).strftime('%I:%M:%S %p')}: {observer.altaz(sun_time,current_sun).alt.to_string(None,True)} degs"
     print(line+"\n")
-print()
-for j in range(len(meridian_times[0])):
-    print(["Cas A","Cyg A","Tau A","Vir A"][j]+":"+repr(observer.altaz(meridian_times[0][j],target_sources[j]).alt))

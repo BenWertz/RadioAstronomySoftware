@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import sys
+from math import log10
 
 def splitMeasurements(lines,nlines,offset=0,lineMargins=[0,0]):
 	output=[]
@@ -15,6 +17,8 @@ def getArg(name,defaultValue=0):
 if len(sys.argv)<2:
 	print("No file selected. Exiting.")
 	exit(0)
+
+matplotlib.rcParams.update({'font.size': 7})
 
 argPairs=[]
 arguments=dict()
@@ -40,8 +44,15 @@ data=file.read()
 
 file.close()
 
-lines=data.split("\n")
-mments=splitMeasurements(lines,nbins,0,[5,1])
+raw_lines=data.split("\n")
+
+lines=[]
+
+for line in raw_lines:
+	if len(line)>2 and line[0].isnumeric():lines.append(line)
+
+#mments=splitMeasurements(lines,nbins,0,[5,1])
+mments=splitMeasurements(lines,nbins,0,[0,0])
 
 
 #print([[a.split(" ") for a in b] for b in mments])
@@ -81,15 +92,62 @@ if getArg("time_diff",0):
 #		xarr[b][a]=b
 #		yarr[b][a]=mments[b][a][0]
 #spectra=np.array(xarr,dtype=float),np.array(yarr,dtype=float),np.array(parr,dtype=float),dtype=float)
-fig,ax=plt.subplots()
-if getArg("multiline",0):
+def graphMultiline(ax,mments,xarr,yarr,parr):
+	ax.set_title("All spectra")
+	ax.set_xlabel("Frequency (Hz)")
+	if getArg("linear_power",0):
+		ax.set_ylabel("Power")
+	else:
+		ax.set_ylabel("Power (dB)")
 	for i in range(len(mments)):
 		ax.plot(yarr[i],parr[i])
-elif getArg("avg",0):
-	avgs=[sum(p)/len(p) for p in parr]
+def graphAvg(ax,mments,xarr,yarr,parr):
+	ax.set_title("Average power/measurement")
+	ax.set_xlabel("Measurement #")
+	if getArg("linear_power",0):
+		ax.set_ylabel("Power")
+	else:
+		ax.set_ylabel("Power (dB)")
+	avgs=[10*log10(sum([pow(10,0.1*q) for q in p])/len(p)) for p in parr]
 	times=[xa[0] for xa in xarr]
 	ax.plot(times,avgs)
+def graphSpectrumAvg(ax,mments,xarr,yarr,parr):
+	ax.set_title("Average spectrum")
+	ax.set_xlabel("Frequency (Hz)")
+	if getArg("linear_power",0):
+		ax.set_ylabel("Power")
+	else:
+		ax.set_ylabel("Power (dB)")
+	avgs=[10*log10(sum([pow(10,0.1*parr[i][p]) for i in range(len(parr))])/len(parr)) for p in range(len(parr[0]))]
+	freqs=yarr[0]
+	ax.plot(freqs,avgs)
+def graphWaterfall(fig,ax,mments,xarr,yarr,parr):
+	ax.set_title("Waterfall")
+	pcm=ax.pcolormesh(xarr,yarr,parr,shading='gouraud')
+	fig.colorbar(pcm,ax=ax)
+if getArg("showAll",0):
+	fig,axes=plt.subplots(2,2,figsize=(10,7))
+	ax0=axes[0,0]
+	ax1=axes[1,0]
+	ax2=axes[0,1]
+	ax3=axes[1,1]
+#	ax0.title="Spectra (color-coded)"
+	graphMultiline(ax0,mments,xarr,yarr,parr)
+	graphAvg(ax1,mments,xarr,yarr,parr)
+	graphSpectrumAvg(ax2,mments,xarr,yarr,parr)
+	graphWaterfall(fig,ax3,mments,xarr,yarr,parr)
+	fig.tight_layout()
+elif getArg("multiline",0):
+	fig,ax=plt.subplots()
+	graphMultiline(ax,mments,xarr,yarr,parr)
+elif getArg("avg",0):
+	fig,ax=plt.subplots()
+	graphAvg(ax,mments,xarr,yarr,parr)
+elif getArg("spectrumAvg",0):
+	fig,ax=plt.subplots()
+	graphSpectrumAvg(ax,mments,xarr,yarr,parr)
 elif getArg("graphSwitch",0):
+	fig,ax=plt.subplots()
 	idx=0
 	min_val=min([min(k) for k in parr])
 	max_val=max([max(k) for k in parr])
@@ -104,14 +162,17 @@ elif getArg("graphSwitch",0):
 #		fig.canvas.flush_events()
 #		plt.flush_events()
 		a=input("< / > / exit: ")
-		if a=="exit":break
-		elif a=="<":
+		if a in ["exit","x","/"]:
+			plt.close()
+			exit(0)
+		elif a in ["<",","]:
 			idx=(idx-1)%len(mments)
-		elif a==">":
+		elif a in [">","."]:
 			idx=(idx+1)%len(mments)
 		ax.cla()
 else:
-	ax.pcolormesh(xarr,yarr,parr,shading='gouraud')
+	fig,ax=plt.subplots()
+	graphWaterfall(fig,ax,mments,xarr,yarr,parr)
 plt.show()
 
 #print(spectra)

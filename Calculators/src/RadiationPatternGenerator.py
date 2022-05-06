@@ -11,10 +11,11 @@ c=3.0e8 #Speed of light
 def calculatePattern(A,L1,frequency):
 
     theta=np.zeros([50],dtype=float)
-    phi=np.zeros([3],dtype=float)
+    phi=np.zeros([1],dtype=float)
 
     for i in range(len(phi)):
         phi[i]=-90+i*180/(len(phi)-1)
+        print(phi[i])
 
     DATA=np.zeros([3,len(phi),len(theta)],dtype=float)
     RPcp=np.zeros([len(phi),len(theta)],dtype=float)
@@ -187,7 +188,7 @@ else:
     theta, phi = output[1]*pi/180,output[2]*pi/180
     THETA,PHI=np.meshgrid(theta,phi)
     for i in range(1):
-        R=80+4*output[3][2]
+        R=100*10**(0.1*output[3][2])
         X=R*np.sin(THETA)*np.cos(PHI)
         Y=R*np.sin(THETA)*np.sin(PHI)
         Z=R*np.cos(THETA)
