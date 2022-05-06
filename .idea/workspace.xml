@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c089eb44-44f3-4ce2-9cad-30d47aeb1560" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/PyRTLSDRTest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Calculators/src/ConicalHornPatternGenerator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Calculators/src/TransitCalculator2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Calculators/src/TransitCalculator2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Calculators/src/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Calculators/src/RadiationPatternGenerator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_grapher.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_grapher.py" afterDir="false" />
-    </list>
+    <list default="true" id="c089eb44-44f3-4ce2-9cad-30d47aeb1560" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
